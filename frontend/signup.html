@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign up - CampusConnect</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="bg"></canvas>
+
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1>CampusConnect</h1>
+      <p class="sub">Create your account</p>
+      <div class="chips"><span>Lost</span><span>Found</span><span>Resources</span></div>
+
+      <label for="name">Name</label>
+      <input id="name" type="text" placeholder="Your name">
+
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="you@college.edu">
+
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="At least 6 characters">
+
+      <button id="signupBtn">Sign up</button>
+      <div class="error" id="error"></div>
+      <div class="switch">Already have an account? <a href="login.html">Log in</a></div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="js/scene3d.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    const btn = document.getElementById("signupBtn");
+    const error = document.getElementById("error");
+
+    async function doSignup() {
+      error.textContent = "";
+      btn.disabled = true;
+      btn.textContent = "Creating account...";
+      try {
+        await api("/auth/signup", {
+          method: "POST",
+          body: JSON.stringify({
+            name: document.getElementById("name").value,
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value,
+          }),
+        });
+        window.location.href = "login.html";
+      } catch (err) {
+        error.textContent = err.message;
+        btn.disabled = false;
+        btn.textContent = "Sign up";
+      }
+    }
+
+    btn.addEventListener("click", doSignup);
+    document.getElementById("password").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doSignup();
+    });
+  </script>
+</body>
+</html>

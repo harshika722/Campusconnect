@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log in - CampusConnect</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="bg"></canvas>
+
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1>CampusConnect</h1>
+      <p class="sub">Welcome back</p>
+      <div class="chips"><span class="lost">Lost</span><span class="found">Found</span><span class="res">Resources</span></div>
+
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="you@college.edu">
+
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="Your password">
+
+      <button id="loginBtn">Log in</button>
+      <div class="error" id="error"></div>
+      <div class="switch">New here? <a href="signup.html">Create an account</a></div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="js/scene3d.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    const btn = document.getElementById("loginBtn");
+    const error = document.getElementById("error");
+
+    async function doLogin() {
+      error.textContent = "";
+      btn.disabled = true;
+      btn.textContent = "Logging in...";
+      try {
+        const data = await api("/auth/login", {
+          method: "POST",
+          body: JSON.stringify({
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value,
+          }),
+        });
+        saveLogin(data.token, data.user);
+        window.location.href = "index.html";
+      } catch (err) {
+        error.textContent = err.message;
+        btn.disabled = false;
+        btn.textContent = "Log in";
+      }
+    }
+
+    btn.addEventListener("click", doLogin);
+    document.getElementById("password").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") doLogin();
+    });
+  </script>
+</body>
+</html>
