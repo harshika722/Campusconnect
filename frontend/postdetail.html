@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusConnect - Post</title>
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="index.html" class="logo">Campus<span>Connect</span></a>
+    <div class="nav-links" id="navLinks"></div>
+  </nav>
+
+  <main class="container narrow wide">
+    <a href="index.html" class="back">&larr; Back to feed</a>
+
+    <p id="message" class="message"></p>
+
+    <!-- POST DETAILS (JS fills this) -->
+    <section id="postBox" class="detail-card hidden"></section>
+
+    <!-- CONTACT (shows only after claim is approved) -->
+    <section id="contactBox" class="contact-box hidden"></section>
+
+    <!-- COMMENTS -->
+    <section class="comments-section hidden" id="commentsSection">
+      <h3>Comments &amp; Claims</h3>
+
+      <div id="commentForm" class="form-card comment-form"></div>
+      <div id="commentList"></div>
+    </section>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/postdetail.js"></script>
+</body>
+</html>

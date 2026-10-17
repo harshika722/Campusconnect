@@ -16,13 +16,15 @@
       <div class="chips"><span class="lost">Lost</span><span class="found">Found</span><span class="res">Resources</span></div>
 
       <label for="email">Email</label>
-      <input id="email" type="email" placeholder="you@college.edu">
+      <input id="email" type="email" placeholder="you@college.edu" autocomplete="email" autocapitalize="none" spellcheck="false">
+      <div class="hint" id="emailHint" role="status"></div>
 
       <label for="password">Password</label>
-      <input id="password" type="password" placeholder="Your password">
+      <input id="password" type="password" placeholder="Your password" autocomplete="current-password">
+      <div class="link-row"><a href="forgotpassword.html">Forgot password?</a></div>
 
       <button id="loginBtn">Log in</button>
-      <div class="error" id="error"></div>
+      <div class="error" id="error" role="alert"></div>
       <div class="switch">New here? <a href="signup.html">Create an account</a></div>
     </div>
   </div>
@@ -30,9 +32,39 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="js/scene3d.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/passwordToggle.js"></script>
   <script>
     const btn = document.getElementById("loginBtn");
     const error = document.getElementById("error");
+    const emailInput = document.getElementById("email");
+    const emailHint = document.getElementById("emailHint");
+
+    // Common email typos -> sahi domain
+    const TYPOS = {
+  "gamil.com": "gmail.com", "gmial.com": "gmail.com", "gmai.com": "gmail.com",
+  "gmail.con": "gmail.com", "gmail.co": "gmail.com", "gnail.com": "gmail.com",
+  "yahooo.com": "yahoo.com", "yaho.com": "yahoo.com",
+  "hotmial.com": "hotmail.com", "outlok.com": "outlook.com",
+};
+
+// Typo mile to sahi email wapas deta hai, warna khali text
+function suggestEmail() {
+  const v = document.getElementById("email").value.trim().toLowerCase();
+  const at = v.lastIndexOf("@");
+  if (at < 0) return "";
+  const fixed = TYPOS[v.slice(at + 1)];
+  return fixed ? v.slice(0, at + 1) + fixed : "";
+}
+
+document.getElementById("email").addEventListener("blur", () => {
+  const s = suggestEmail();
+  document.getElementById("emailHint").textContent = s ? "Did you mean " + s + "?" : "";
+});
+    // Email box se bahar click karte hi hint dikhao
+    emailInput.addEventListener("blur", () => {
+      const s = suggestEmail();
+      emailHint.textContent = s ? "Did you mean " + s + "?" : "";
+    });
 
     async function doLogin() {
       error.textContent = "";
@@ -41,15 +73,18 @@
       try {
         const data = await api("/auth/login", {
           method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            email: document.getElementById("email").value,
+            email: emailInput.value.trim().toLowerCase(),
             password: document.getElementById("password").value,
           }),
         });
         saveLogin(data.token, data.user);
         window.location.href = "index.html";
       } catch (err) {
-        error.textContent = err.message;
+        // Login fail hua aur email mein typo dikhta hai, to error ke saath suggestion bhi do
+        const s = suggestEmail();
+        error.textContent = err.message + (s ? ". Did you mean " + s + "?" : "");
         btn.disabled = false;
         btn.textContent = "Log in";
       }

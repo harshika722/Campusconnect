@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusConnect - Home</title>
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <a href="index.html" class="logo">Campus<span>Connect</span></a>
+    <div class="nav-links" id="navLinks"></div>
+  </nav>
+
+  <main class="container">
+
+    <!-- HERO -->
+    <section class="hero">
+      <h1>Lost something? Found something?</h1>
+      <p>Your campus lost &amp; found and resource sharing, all in one place.</p>
+    </section>
+
+    <!-- SEARCH + FILTERS -->
+    <section class="controls">
+      <input type="text" id="searchInput" placeholder="Search... (e.g. ID card, book, keys)" />
+      <div class="filters" id="filters">
+        <button class="chip active" data-cat="all">All</button>
+        <button class="chip" data-cat="lost">Lost</button>
+        <button class="chip" data-cat="found">Found</button>
+        <button class="chip" data-cat="resource">Resource</button>
+      </div>
+    </section>
+
+    <!-- POSTS -->
+    <p id="message" class="message"></p>
+    <section class="grid" id="postGrid"></section>
+
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/index.js"></script>
+</body>
+</html>

@@ -43,3 +43,8 @@ button:disabled { opacity: 0.6; cursor: wait; }
 .error { color: var(--error); font-size: 13px; margin-top: 14px; min-height: 18px; }
 .switch { margin-top: 18px; font-size: 14px; color: var(--muted); text-align: center; }
 .switch a { color: var(--accent); font-weight: 700; }
+.link-row { margin-top: 12px; text-align: right; font-size: 13px; }
+.link-row a { color: var(--accent, #00e5ff); font-weight: 600; }
+.help { color: var(--muted, #94a3b8); font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
+.success { color: #7dffb0; font-size: 14px; margin-top: 14px; line-height: 1.5; }
+.hint { color: #ffd23f; font-size: 13px; margin-top: 6px; min-height: 16px; }
