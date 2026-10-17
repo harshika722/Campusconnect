@@ -10,6 +10,8 @@ const mongoose = require("mongoose");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+// Render ke proxy ke peeche chalta hai: rate limit ko asli user ka IP dikhe
+if (process.env.TRUST_PROXY) app.set("trust proxy", Number(process.env.TRUST_PROXY));
 
 app.use(cors());
 app.use(express.json());
