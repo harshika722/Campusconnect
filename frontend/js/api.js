@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api";
+const API_URL = "https://campusconnect-7xlj.onrender.com/api";
 
 function getToken() {
   return localStorage.getItem("token");
