@@ -6,10 +6,11 @@ A website for college students to post **lost items**, **found items**, and **st
 
 | Part | Tech |
 | --- | --- |
-| Website | React (Vite) + CSS |
+| Website | HTML, CSS, JavaScript (multi-page, no framework) |
 | Server | Node.js + Express |
-| Database | MongoDB (next step) |
-| Auth | JWT + bcrypt (next step) |
+| Database | MongoDB Atlas (Mongoose) |
+| Auth | JWT + bcrypt |
+| Email | Nodemailer (password reset) |
 
 ## Folder layout
 
