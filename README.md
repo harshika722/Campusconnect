@@ -37,7 +37,7 @@ A college lost-and-found and resource-sharing web app. Students can post lost it
 - An owner cannot claim their own post (rejected by the backend, not only hidden in the UI)
 - Claims are visible only to the post owner and the claimer
 - Password reset tokens are random, stored only as a SHA-256 hash, expire in 15 minutes, and are single-use. The forgot-password response is the same whether or not the email exists, and the endpoint is rate limited
-- Login and signup accept only string inputs, which blocks NoSQL operator injection
+- Signup validates its inputs: name, email, and password must be text, the email format is checked, and the password length is limited
 - User text is escaped before it is rendered, which prevents HTML and script injection
 - Secrets live in environment variables and `.env` is git-ignored
 - Signup is verified by email OTP: details wait in a separate pending collection (password already hashed), the real account is created only after the correct code, codes are single-use, attempts and resends are limited, and a fake email cannot complete signup
@@ -47,7 +47,7 @@ A college lost-and-found and resource-sharing web app. Students can post lost it
 ```
 backend/
   middleware/   JWT auth check
-  models/       User, Post, Comment, Report
+  models/       User, Post, Comment, Report, PendingSignup
   routes/       auth, posts, comments
   utils/        mailer (Brevo API or SMTP)
   server.js
@@ -113,7 +113,7 @@ Open `frontend/index.html` with the VS Code Live Server extension. On `127.0.0.1
 
 ## Testing
 
-Tested manually with multiple accounts: signup and login, post create/edit/delete, the full claim, approve, and contact-reveal flow, privacy checks (a third user cannot see claims or the contact), authorization checks (non-owners get 403), token-removal behavior, and the forgot-password flow including single-use and invalid tokens  Signup email OTP was tested with correct, wrong, and expired codes, resend limits, and an unverified signup (no account is created until the code is verified)..
+Tested manually with multiple accounts: signup and login, post create/edit/delete, the full claim, approve, and contact-reveal flow, privacy checks (a third user cannot see claims or the contact), authorization checks (non-owners get 403), token-removal behavior, and the forgot-password flow including single-use and invalid tokens. Signup email OTP was tested with correct and wrong codes, and with an unverified signup (no account is created until the code is verified).
 
 ## Author
 
