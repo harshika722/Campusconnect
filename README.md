@@ -17,6 +17,7 @@ A college lost-and-found and resource-sharing web app. Students can post lost it
 - **Dashboard:** edit, delete, and mark your own posts as resolved or reopened, and save your contact
 - **Reports:** logged-in users can report a post
 - **Forgot password:** emailed reset link that expires in 15 minutes and works only once
+- **Email OTP verification on signup:** an account is created only after the user enters a 6-digit code sent to their email. The code expires in 10 minutes, allows 5 attempts, and is stored only as a hash
 
 ## Tech stack
 
