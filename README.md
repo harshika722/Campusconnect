@@ -40,6 +40,7 @@ A college lost-and-found and resource-sharing web app. Students can post lost it
 - Login and signup accept only string inputs, which blocks NoSQL operator injection
 - User text is escaped before it is rendered, which prevents HTML and script injection
 - Secrets live in environment variables and `.env` is git-ignored
+- Signup is verified by email OTP: details wait in a separate pending collection (password already hashed), the real account is created only after the correct code, codes are single-use, attempts and resends are limited, and a fake email cannot complete signup
 
 ## Folder layout
 
@@ -60,7 +61,9 @@ frontend/
 
 | Method | Endpoint | Auth | Purpose |
 | --- | --- | --- | --- |
-| POST | `/api/auth/signup` | No | Create account |
+| POST | `/api/auth/signup` | No | Validate details and email a 6-digit code (no account yet) |
+| POST | `/api/auth/signup/verify` | No | Check the code and create the account |
+| POST | `/api/auth/signup/resend` | No | Send a new code (1 per minute, max 5) |
 | POST | `/api/auth/login` | No | Log in, returns token |
 | POST | `/api/auth/forgot-password` | No | Send reset link |
 | POST | `/api/auth/reset-password` | No | Set a new password with the token |
@@ -91,12 +94,11 @@ Copy `.env.example` to `.env` and fill in `MONGO_URI` and `JWT_SECRET`. Then:
 npm start
 ```
 
-The API runs at `http://localhost:5000`. Without a mail provider configured, the password reset link is printed in the backend terminal.
+The API runs at `http://localhost:5000`. Without a mail provider configured, the signup code and the password reset link are printed in the backend terminal.
 
 **2. Frontend**
 
-In `frontend/js/api.js`, set `API_URL` to `http://localhost:5000/api`, then open `frontend/index.html` with the VS Code Live Server extension.
-
+Open `frontend/index.html` with the VS Code Live Server extension. On `127.0.0.1` or `localhost` the frontend automatically uses `http://localhost:5000/api`; on the deployed site it uses the Render API.
 ## Environment variables (backend)
 
 | Name | Purpose |
@@ -107,10 +109,11 @@ In `frontend/js/api.js`, set `API_URL` to `http://localhost:5000/api`, then open
 | `BREVO_API_KEY`, `MAIL_FROM` | Email through the Brevo API (used on Render) |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS` | Alternative: any SMTP server |
 | `TRUST_PROXY` | Set to `1` when running behind a proxy such as Render |
+| `ALLOWED_EMAIL_DOMAINS` | Optional. Comma-separated domains (for example `college.edu`) to allow only college emails |
 
 ## Testing
 
-Tested manually with multiple accounts: signup and login, post create/edit/delete, the full claim, approve, and contact-reveal flow, privacy checks (a third user cannot see claims or the contact), authorization checks (non-owners get 403), token-removal behavior, and the forgot-password flow including single-use and invalid tokens.
+Tested manually with multiple accounts: signup and login, post create/edit/delete, the full claim, approve, and contact-reveal flow, privacy checks (a third user cannot see claims or the contact), authorization checks (non-owners get 403), token-removal behavior, and the forgot-password flow including single-use and invalid tokens  Signup email OTP was tested with correct, wrong, and expired codes, resend limits, and an unverified signup (no account is created until the code is verified)..
 
 ## Author
 
