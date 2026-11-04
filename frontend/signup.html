@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sign up - CampusConnect</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .help { color: #94a3b8; font-size: 13px; line-height: 1.5; margin: 4px 0 14px; }
+    .success { color: #7dffb0; font-size: 14px; margin-top: 14px; line-height: 1.5; }
+    .hint { color: #ffd23f; font-size: 13px; margin-top: 6px; min-height: 16px; }
+    .otp-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; }
+    .auth-card .otp-actions button.linklike {
+      width: auto; margin: 0; padding: 6px 2px; background: none; border: none; box-shadow: none;
+      color: #00e5ff; font-size: 13px; font-weight: 600; cursor: pointer;
+    }
+    .auth-card .otp-actions button.linklike:disabled { color: #94a3b8; cursor: not-allowed; }
+    #otp { text-align: center; letter-spacing: 8px; font-size: 20px; }
+  </style>
 </head>
 <body>
   <canvas id="bg"></canvas>
@@ -12,20 +24,41 @@
   <div class="auth-wrap">
     <div class="auth-card">
       <h1>CampusConnect</h1>
-      <p class="sub">Create your account</p>
-      <div class="chips"><span>Lost</span><span>Found</span><span>Resources</span></div>
+      <p class="sub" id="subtitle">Create your account</p>
+      <div class="chips"><span class="lost">Lost</span><span class="found">Found</span><span class="res">Resources</span></div>
 
-      <label for="name">Name</label>
-      <input id="name" type="text" placeholder="Your name">
+      <!-- STEP 1: details -->
+      <div id="stepForm">
+        <label for="name">Name</label>
+        <input id="name" type="text" placeholder="Your name" autocomplete="name" maxlength="60">
 
-      <label for="email">Email</label>
-      <input id="email" type="email" placeholder="you@college.edu">
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="you@college.edu" autocomplete="email" autocapitalize="none" spellcheck="false">
+        <div class="hint" id="emailHint" role="status"></div>
 
-      <label for="password">Password</label>
-      <input id="password" type="password" placeholder="At least 6 characters">
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="At least 6 characters" autocomplete="new-password">
 
-      <button id="signupBtn">Sign up</button>
-      <div class="error" id="error"></div>
+        <button id="signupBtn">Sign up</button>
+      </div>
+
+      <!-- STEP 2: email code -->
+      <div id="stepOtp" style="display:none">
+        <p class="help">We sent a 6-digit code to <b id="sentTo"></b>. It expires in 10 minutes. Check your Spam folder if you do not see it.</p>
+
+        <label for="otp">Verification code</label>
+        <input id="otp" type="text" inputmode="numeric" maxlength="6" placeholder="------" autocomplete="one-time-code">
+
+        <button id="verifyBtn">Verify email</button>
+
+        <div class="otp-actions">
+          <button type="button" class="linklike" id="resendBtn">Resend code</button>
+          <button type="button" class="linklike" id="backBtn">Change email</button>
+        </div>
+      </div>
+
+      <div class="error" id="error" role="alert"></div>
+      <div class="success" id="success" role="status"></div>
       <div class="switch">Already have an account? <a href="login.html">Log in</a></div>
     </div>
   </div>
@@ -33,35 +66,192 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="js/scene3d.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/passwordToggle.js"></script>
   <script>
-    const btn = document.getElementById("signupBtn");
+    const stepForm = document.getElementById("stepForm");
+    const stepOtp = document.getElementById("stepOtp");
+    const subtitle = document.getElementById("subtitle");
     const error = document.getElementById("error");
+    const success = document.getElementById("success");
+    const nameInput = document.getElementById("name");
+    const emailInput = document.getElementById("email");
+    const emailHint = document.getElementById("emailHint");
+    const passwordInput = document.getElementById("password");
+    const otpInput = document.getElementById("otp");
+    const signupBtn = document.getElementById("signupBtn");
+    const verifyBtn = document.getElementById("verifyBtn");
+    const resendBtn = document.getElementById("resendBtn");
+    const backBtn = document.getElementById("backBtn");
 
-    async function doSignup() {
-      error.textContent = "";
-      btn.disabled = true;
-      btn.textContent = "Creating account...";
+    const RESEND_SECONDS = 60;
+    let signupId = null;      // sirf memory mein rehta hai (page refresh par signup dobara shuru hota hai)
+    let signupEmail = "";
+    let typoConfirmed = false;
+    let cooldownTimer = null;
+
+    function showMessage(kind, text) {
+      error.textContent = kind === "error" ? text : "";
+      success.textContent = kind === "success" ? text : "";
+    }
+
+    function showStep(step) {
+      showMessage("error", "");
+      stepForm.style.display = step === "form" ? "" : "none";
+      stepOtp.style.display = step === "otp" ? "" : "none";
+      subtitle.textContent = step === "otp" ? "Verify your email" : "Create your account";
+    }
+
+    // ----- Email typo hint (galat email par code chala gaya to user phas jaata hai) -----
+    const TYPOS = {
+      "gamil.com": "gmail.com", "gmial.com": "gmail.com", "gmai.com": "gmail.com",
+      "gmail.con": "gmail.com", "gmail.co": "gmail.com", "gnail.com": "gmail.com",
+      "yahooo.com": "yahoo.com", "yaho.com": "yahoo.com",
+      "hotmial.com": "hotmail.com", "outlok.com": "outlook.com",
+    };
+    function suggestEmail() {
+      const v = emailInput.value.trim().toLowerCase();
+      const at = v.lastIndexOf("@");
+      if (at < 0) return "";
+      const fixed = TYPOS[v.slice(at + 1)];
+      return fixed ? v.slice(0, at + 1) + fixed : "";
+    }
+    emailInput.addEventListener("blur", () => {
+      const s = suggestEmail();
+      emailHint.textContent = s ? "Did you mean " + s + "?" : "";
+    });
+    emailInput.addEventListener("input", () => { typoConfirmed = false; });
+
+    // ----- Resend button ka countdown -----
+    function startCooldown(seconds) {
+      clearInterval(cooldownTimer);
+      let left = seconds;
+      resendBtn.disabled = true;
+      resendBtn.textContent = "Resend code in " + left + "s";
+      cooldownTimer = setInterval(() => {
+        left -= 1;
+        if (left <= 0) {
+          clearInterval(cooldownTimer);
+          resendBtn.disabled = false;
+          resendBtn.textContent = "Resend code";
+        } else {
+          resendBtn.textContent = "Resend code in " + left + "s";
+        }
+      }, 1000);
+    }
+
+    function goToLogin() {
+      window.location.href = "login.html";
+    }
+
+    // ----- Step 1: code maango -----
+    async function startSignup() {
+      showMessage("error", "");
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim().toLowerCase();
+      const password = passwordInput.value;
+
+      if (!name || !email || !password) {
+        showMessage("error", "Please fill in all fields.");
+        return;
+      }
+      if (password.length < 6) {
+        showMessage("error", "Password must be at least 6 characters.");
+        return;
+      }
+      const s = suggestEmail();
+      if (s && !typoConfirmed) {
+        typoConfirmed = true;
+        emailHint.textContent = "Did you mean " + s + "?";
+        showMessage("error", "Check your email spelling. The code is sent to this address. Press Sign up again to continue with what you typed.");
+        return;
+      }
+
+      signupBtn.disabled = true;
+      signupBtn.textContent = "Sending code...";
       try {
-        await api("/auth/signup", {
+        const data = await api("/auth/signup", {
           method: "POST",
-          body: JSON.stringify({
-            name: document.getElementById("name").value,
-            email: document.getElementById("email").value,
-            password: document.getElementById("password").value,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password }),
         });
-        window.location.href = "login.html";
+        signupId = data.signupId;
+        signupEmail = data.email;
+        document.getElementById("sentTo").textContent = data.email;
+        otpInput.value = "";
+        showStep("otp");
+        startCooldown(RESEND_SECONDS);
+        otpInput.focus();
       } catch (err) {
-        error.textContent = err.message;
-        btn.disabled = false;
-        btn.textContent = "Sign up";
+        showMessage("error", err.message);
+      }
+      signupBtn.disabled = false;
+      signupBtn.textContent = "Sign up";
+    }
+
+    // ----- Step 2: code check karo, tabhi account banta hai -----
+    async function verifyCode() {
+      showMessage("error", "");
+      const otp = otpInput.value.trim();
+      if (!/^\d{6}$/.test(otp)) {
+        showMessage("error", "Please enter the 6-digit code.");
+        return;
+      }
+      verifyBtn.disabled = true;
+      verifyBtn.textContent = "Verifying...";
+      try {
+        await api("/auth/signup/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: signupEmail, otp, signupId }),
+        });
+        showMessage("success", "Email verified! Your account is ready. Redirecting to log in...");
+        setTimeout(() => goToLogin(), 1500);
+        return; // button disabled rehne do, redirect hone wala hai
+      } catch (err) {
+        showMessage("error", err.message);
+      }
+      verifyBtn.disabled = false;
+      verifyBtn.textContent = "Verify email";
+    }
+
+    async function resendCode() {
+      showMessage("error", "");
+      resendBtn.disabled = true;
+      try {
+        await api("/auth/signup/resend", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: signupEmail, signupId }),
+        });
+        showMessage("success", "A new code was sent to your email.");
+        otpInput.value = "";
+        startCooldown(RESEND_SECONDS);
+      } catch (err) {
+        if (err.message === "Please sign up again.") {
+          signupId = null;
+          showStep("form");
+        }
+        showMessage("error", err.message);
+        if (signupId) startCooldown(RESEND_SECONDS);
       }
     }
 
-    btn.addEventListener("click", doSignup);
-    document.getElementById("password").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") doSignup();
+    function backToForm() {
+      clearInterval(cooldownTimer);
+      signupId = null;
+      showStep("form");
+      showMessage("success", "");
+    }
+
+    otpInput.addEventListener("input", () => {
+      otpInput.value = otpInput.value.replace(/\D/g, "").slice(0, 6);
     });
+    otpInput.addEventListener("keydown", (e) => { if (e.key === "Enter") verifyCode(); });
+    passwordInput.addEventListener("keydown", (e) => { if (e.key === "Enter") startSignup(); });
+    signupBtn.addEventListener("click", startSignup);
+    verifyBtn.addEventListener("click", verifyCode);
+    resendBtn.addEventListener("click", resendCode);
+    backBtn.addEventListener("click", backToForm);
   </script>
 </body>
 </html>

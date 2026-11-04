@@ -48,3 +48,16 @@ button:disabled { opacity: 0.6; cursor: wait; }
 .help { color: var(--muted, #94a3b8); font-size: 13px; line-height: 1.5; margin-bottom: 14px; }
 .success { color: #7dffb0; font-size: 14px; margin-top: 14px; line-height: 1.5; }
 .hint { color: #ffd23f; font-size: 13px; margin-top: 6px; min-height: 16px; }
+/* ===== Password show/hide (eye) button ===== */
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 48px; }
+.pw-toggle {
+  position: absolute; top: 50%; right: 6px; transform: translateY(-50%);
+  width: 38px; height: 38px; margin: 0; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; color: #cfd3e6; border-radius: 8px; box-shadow: none;
+}
+.pw-toggle:hover { transform: translateY(-50%); box-shadow: none; background: rgba(255, 255, 255, 0.1); color: var(--accent, #00e5ff); }
+.pw-toggle:focus-visible { outline: 2px solid var(--accent, #00e5ff); outline-offset: 1px; }
+/* Edge ka apna eye icon chhupa do, taaki sirf hamara dikhe */
+input[type="password"]::-ms-reveal, input[type="password"]::-ms-clear { display: none; }

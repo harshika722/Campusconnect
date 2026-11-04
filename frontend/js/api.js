@@ -1,4 +1,7 @@
-const API_URL = "https://campusconnect-7xlj.onrender.com/api";
+const API_URL =
+  location.hostname === "127.0.0.1" || location.hostname === "localhost"
+    ? "http://localhost:5000/api"
+    : "https://campusconnect-7xlj.onrender.com/api";
 
 function getToken() {
   return localStorage.getItem("token");
