@@ -404,3 +404,49 @@ body {
 @media (max-width: 600px) {
   .contact-row { flex-direction: column; }
 }
+/* ===== Mobile / chhoti screen (laptop par koi asar nahi) ===== */
+@media (max-width: 640px) {
+  .navbar { flex-wrap: wrap; gap: 10px; padding: 12px 14px; }
+  .logo { font-size: 1.2rem; }
+  .nav-links { width: 100%; justify-content: flex-start; gap: 8px; }
+  .nav-links a, .nav-links button { padding: 10px 14px; font-size: 0.85rem; }
+
+  .container { padding: 16px 14px 48px; }
+  .hero { padding: 24px 0 16px; }
+  .hero p { font-size: 0.95rem; }
+
+  .controls { gap: 12px; margin-bottom: 20px; }
+  #searchInput { padding: 12px 16px; font-size: 16px; }
+  .filters { gap: 8px; }
+  .chip { padding: 10px 16px; }
+
+  .grid { grid-template-columns: 1fr; gap: 16px; }
+  .card-img { height: 170px; }
+
+  .form-card { padding: 22px 16px; }
+  .form-card input, .form-card select, .form-card textarea { font-size: 16px; padding: 13px 14px; }
+  .submit-btn { padding: 15px; }
+
+  .detail-body { padding: 18px; }
+  .detail-body h1 { font-size: 1.4rem; }
+  .detail-info { flex-direction: column; gap: 6px; }
+  .detail-actions { flex-direction: column; }
+  .detail-actions .btn { width: 100%; text-align: center; }
+  .btn { padding: 11px 18px; }
+  .comment { padding: 12px 14px; }
+  .comment-head { flex-direction: column; gap: 2px; }
+  .claim-actions { flex-wrap: wrap; }
+  .claim-actions .btn { flex: 1; }
+  .comment-form .submit-btn { width: 100%; }
+
+  .my-post { flex-direction: column; align-items: stretch; padding: 14px; }
+  .my-post-actions { width: 100%; }
+  .my-post-actions .btn { flex: 1; text-align: center; }
+  .contact-row { flex-direction: column; }
+  .contact-row .btn { width: 100%; }
+
+  .modal { padding: 12px; align-items: flex-start; }
+  .modal-box { max-height: 94vh; padding: 20px 16px; }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions .btn { width: 100%; }
+}
